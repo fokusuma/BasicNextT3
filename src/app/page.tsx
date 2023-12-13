@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { type NextPage } from "next";
-import { CreatePost } from "@/app/_components/create-post";
 import { getServerAuthSession } from "@/server/auth";
 import { api } from "@/trpc/server";
 
@@ -77,8 +76,6 @@ async function CrudShowcase() {
       ) : (
         <p>You have no posts yet.</p>
       )}
-
-      <CreatePost />
     </div>
   );
 }
