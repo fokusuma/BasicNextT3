@@ -1,5 +1,6 @@
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { bookSchema, bookParamsSchema } from "../schemas";
+import { storeImageInGridFS } from "@/utils/gridfs";
 
 export const bookRouter = createTRPCRouter({
   // get all books
@@ -43,14 +44,19 @@ export const bookRouter = createTRPCRouter({
   // create book
   create: publicProcedure.input(bookSchema).mutation(async ({ ctx, input }) => {
     try {
-      await ctx.db.book.create({
+      const image = Buffer.from(input.image, "base64");
+
+      // create book
+      const storedImage = await storeImageInGridFS(image, "book-images");
+
+      const res = await ctx.db.book.create({
         data: {
           title: input.title,
           description: input.description,
           categoryId: input.categoryId,
           pages: parseInt(input.pages),
           price: parseInt(input.price),
-          image: input.image,
+          image: "book-images/" + storedImage,
           author: input.author,
           createdById: input.createdById,
         },
@@ -59,13 +65,13 @@ export const bookRouter = createTRPCRouter({
       return {
         success: true,
         message: "Book created successfully",
-        data: [],
+        data: res,
       };
     } catch (error) {
       return {
         success: false,
-        message: "Unable to create book",
-        data: [],
+        message: "Unable to create book, error: " + String(error),
+        data: {},
       };
     }
   }),
